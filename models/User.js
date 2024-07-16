@@ -1,4 +1,5 @@
 import { model, Schema } from "mongoose";
+import bcrypt from 'bcryptjs'
 
 let userSchema = new Schema(
   {
@@ -20,11 +21,23 @@ let userSchema = new Schema(
     },
     confirmPassword: {
       type: String,
-      required: true,
+      validate:{
+        validator:function(value){
+          return this.password===value
+        },
+        message:"Confirm password doesn't match"
+      }
     },
   },
   { timestamps: true }
 );
+//pre hook to hash the password before the doc is created
+//it is a middleware
+userSchema.pre("save",async function(next){
+  const salt=await bcrypt.genSalt(10)
+  this.password=await bcrypt.hash(this.password,salt)
+  next()
+})
 
 
 let User=model("User",userSchema)
