@@ -15,7 +15,7 @@ export const signup=async (req,res,next)=>{
             name,email,password,confirmPassword
         })
 
-        //jwt token
+        //jwt token    
         let token=await jwt.sign({id:newUser._id},process.env.JWT_SECRET,{
             expiresIn:24*60*60
         })
@@ -30,3 +30,27 @@ export const signup=async (req,res,next)=>{
 }
 
 //login
+
+export const login=async (req,res,next)=>{
+    const {email,password}=req.body
+    try {
+        //checking for existing user
+        let existingUser=await User.findOne({email})
+        // let match= await existingUser.verifyPassword(password,existingUser.password)
+        // console.log(match);
+        if(!existingUser || !(await existingUser.verifyPassword(password,existingUser.password))){
+            return res.status(400).json("User doesn't exist")
+        }
+        //jwt token    
+        let token=await jwt.sign({id:existingUser._id},process.env.JWT_SECRET,{
+            expiresIn:24*60*60
+        })
+
+        //projecting only required fields
+        let user=await User.findById(existingUser._id).select("-password -confirmPassword")
+        //response
+        res.status(201).json({user,token})
+    } catch (error) {
+        res.status(400).json(error.message) 
+    }
+}

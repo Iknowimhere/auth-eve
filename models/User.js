@@ -39,6 +39,11 @@ userSchema.pre("save",async function(next){
   next()
 })
 
+//verifyPassword
+
+userSchema.methods.verifyPassword=async function(pwd,pwdDB){
+  return await bcrypt.compare(pwd,pwdDB)
+}
 
 let User=model("User",userSchema)
 
